@@ -1,6 +1,9 @@
 {
   "version": 2,
   "projects": {
-    "demo": "packages/demo"
+    "bar-chart": "packages/bar-chart",
+    "demo": "packages/demo",
+    "demo-next": "packages/demo-next",
+    "demo-next-e2e": "packages/demo-next-e2e"
   }
 }

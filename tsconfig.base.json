@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@hello-visx/bar-chart": ["./packages/bar-chart/src/index.ts"],
+      "~/*": ["./packages/demo/app/*"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

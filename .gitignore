@@ -39,6 +39,6 @@ testem.log
 Thumbs.db
 
 # Remix files
-apps/**/build
-apps/**/.cache
+packages/**/build
+packages/**/.cache
   

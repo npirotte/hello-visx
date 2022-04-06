@@ -1,0 +1,23 @@
+{
+  "root": "packages/bar-chart",
+  "sourceRoot": "packages/bar-chart/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/bar-chart/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/packages/bar-chart"],
+      "options": {
+        "jestConfig": "packages/bar-chart/jest.config.js",
+        "passWithNoTests": true
+      }
+    }
+  }
+}
