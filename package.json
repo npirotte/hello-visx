@@ -5,7 +5,8 @@
   "scripts": {
     "postinstall": "remix setup node",
     "update-schema": "npx gq https://kind-urchin-96.hasura.app/v1/graphql -H \"X-Hasura-Admin-Secret: E6Vy6f5BVWJZcaU1cC0Rh240B3xBaBClB0vLwuP1MJNUP1YBPRlfybDTR4QJ31Ng\" --introspect > packages/graphql-schema/schema.graphql",
-    "graphql-types": "graphql-codegen"
+    "graphql-types": "graphql-codegen",
+    "build": "nx build demo"
   },
   "private": true,
   "dependencies": {
