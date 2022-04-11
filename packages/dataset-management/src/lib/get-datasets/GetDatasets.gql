@@ -1,0 +1,7 @@
+query GetDatasets($limit: Int, $offset: Int) {
+  datasets(limit: $limit, offset: $offset, order_by: { name: asc}) {
+    id
+    name
+    protected
+  }
+}

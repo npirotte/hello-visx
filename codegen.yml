@@ -1,0 +1,20 @@
+overwrite: true
+schema: 'packages/graphql-schema/schema.graphql'
+documents: ['packages/**/*.gql']
+config:
+  useTypeImports: true
+generates:
+  # libs/graphql-schema/src/generated/apollo.ts:
+  #   plugins:
+  #     - typescript
+  #     - typescript-resolvers
+  #     - typescript-operations
+  #     - typescript-react-apollo
+  packages/graphql-schema/src/generated/graphql-request.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers
+      - typescript-operations
+      - typescript-graphql-request
+    config:
+      rawRequest: true

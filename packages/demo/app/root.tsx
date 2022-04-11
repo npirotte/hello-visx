@@ -12,17 +12,14 @@ import type { LinksFunction } from 'remix';
 
 import globalStylesUrl from '~/styles/global.css';
 import darkStylesUrl from '~/styles/dark.css';
+import { useContext, useEffect } from 'react';
+import { ServerStyleContext, ClientStyleContext } from './context';
+import { withEmotionCache } from '@emotion/react';
+import { Box, ChakraProvider, Container, Stack, Wrap, WrapItem } from '@chakra-ui/react';
 
 // https://remix.run/api/app#links
 export let links: LinksFunction = () => {
-  return [
-    { rel: 'stylesheet', href: globalStylesUrl },
-    {
-      rel: 'stylesheet',
-      href: darkStylesUrl,
-      media: '(prefers-color-scheme: dark)',
-    },
-  ];
+  return [];
 };
 
 // https://remix.run/api/conventions#default-export
@@ -30,9 +27,11 @@ export let links: LinksFunction = () => {
 export default function App() {
   return (
     <Document>
-      <Layout>
-        <Outlet />
-      </Layout>
+      <ChakraProvider>
+        <Layout>
+          <Outlet />
+        </Layout>
+      </ChakraProvider>
     </Document>
   );
 }
@@ -93,63 +92,103 @@ export function CatchBoundary() {
   );
 }
 
-function Document({
-  children,
-  title,
-}: {
+interface DocumentProps {
   children: React.ReactNode;
   title?: string;
-}) {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        {title ? <title>{title}</title> : null}
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
-        {process.env.NODE_ENV === 'development' && <LiveReload />}
-      </body>
-    </html>
-  );
 }
+
+const Document = withEmotionCache(
+  ({ children }: DocumentProps, emotionCache) => {
+    const serverStyleData = useContext(ServerStyleContext);
+    const clientStyleData = useContext(ClientStyleContext);
+
+    // Only executed on client
+    useEffect(() => {
+      // re-link sheet container
+      emotionCache.sheet.container = document.head;
+      // re-inject tags
+      const tags = emotionCache.sheet.tags;
+      emotionCache.sheet.flush();
+      tags.forEach((tag) => {
+        (emotionCache.sheet as any)._insertTag(tag);
+      });
+      // reset cache to reapply global styles
+      clientStyleData?.reset();
+    }, []);
+
+    return (
+      <html lang="en">
+        <head>
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstaticom" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+            rel="stylesheet"
+          />
+          <Meta />
+          <Links />
+          {serverStyleData?.map(({ key, ids, css }) => (
+            <style
+              key={key}
+              data-emotion={`${key} ${ids.join(' ')}`}
+              dangerouslySetInnerHTML={{ __html: css }}
+            />
+          ))}
+        </head>
+        <body>
+          {children}
+          <ScrollRestoration />
+          <Scripts />
+          {process.env.NODE_ENV === 'development' ? <LiveReload /> : null}
+        </body>
+      </html>
+    );
+  }
+);
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="remix-app">
-      <header className="remix-app__header">
-        <div className="container remix-app__header-content">
-          <Link to="/" title="Remix" className="remix-app__header-home-link">
-            <RemixLogo />
-          </Link>
-          <nav aria-label="Main navigation" className="remix-app__header-nav">
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <a href="https://remix.run/docs">Remix Docs</a>
-              </li>
-              <li>
-                <a href="https://github.com/remix-run/remix">GitHub</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-      <div className="remix-app__main">
-        <div className="container remix-app__main-content">{children}</div>
-      </div>
-      <footer className="remix-app__footer">
-        <div className="container remix-app__footer-content">
-          <p>&copy; You!</p>
-        </div>
-      </footer>
+      <Stack>
+        <Box as="header" p="4" borderBottom="solid 1px grey">
+          <Wrap>
+            <WrapItem>
+              <Link
+                to="/"
+                title="Remix"
+                className="remix-app__header-home-link"
+              >
+                <RemixLogo />
+              </Link>
+            </WrapItem>
+            <WrapItem>
+              <Link to="/">Home</Link>
+            </WrapItem>
+            <WrapItem>
+              <Link to="/bar-chart-demo">Insights</Link>
+            </WrapItem>
+            <WrapItem>
+              <Link to="/items">Items</Link>
+            </WrapItem>
+          </Wrap>
+        </Box>
+        <Box>
+          <Container>
+            <div className="remix-app__main">
+              <div className="container remix-app__main-content">
+                {children}
+              </div>
+            </div>
+          </Container>
+        </Box>
+        <footer className="remix-app__footer">
+          <div className="container remix-app__footer-content">
+            <p>&copy; You!</p>
+          </div>
+        </footer>
+      </Stack>
     </div>
   );
 }

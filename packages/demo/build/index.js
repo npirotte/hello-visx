@@ -2,8 +2,22 @@ var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __esm = (fn, res) => function __init() {
   return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
@@ -337,14 +351,46 @@ __export(entry_server_exports, {
 });
 init_react();
 var import_server = require("react-dom/server");
+var import_react2 = require("@emotion/react");
+var import_create_instance = __toESM(require("@emotion/server/create-instance"));
 var import_remix = __toESM(require_remix());
+
+// app/context.tsx
+init_react();
+var import_react = require("react");
+var ServerStyleContext = (0, import_react.createContext)(null);
+var ClientStyleContext = (0, import_react.createContext)(null);
+
+// app/emotionCache.tsx
+init_react();
+var import_cache = __toESM(require("@emotion/cache"));
+function createEmotionCache() {
+  return (0, import_cache.default)({ key: "css" });
+}
+
+// app/entry.server.tsx
 function handleRequest(request, responseStatusCode, responseHeaders, remixContext) {
-  let markup = (0, import_server.renderToString)(/* @__PURE__ */ React.createElement(import_remix.RemixServer, {
+  const cache = createEmotionCache();
+  const { extractCriticalToChunks } = (0, import_create_instance.default)(cache);
+  const html = (0, import_server.renderToString)(/* @__PURE__ */ React.createElement(ServerStyleContext.Provider, {
+    value: null
+  }, /* @__PURE__ */ React.createElement(import_react2.CacheProvider, {
+    value: cache
+  }, /* @__PURE__ */ React.createElement(import_remix.RemixServer, {
     context: remixContext,
     url: request.url
-  }));
+  }))));
+  const chunks = extractCriticalToChunks(html);
+  const markup = (0, import_server.renderToString)(/* @__PURE__ */ React.createElement(ServerStyleContext.Provider, {
+    value: chunks.styles
+  }, /* @__PURE__ */ React.createElement(import_react2.CacheProvider, {
+    value: cache
+  }, /* @__PURE__ */ React.createElement(import_remix.RemixServer, {
+    context: remixContext,
+    url: request.url
+  }))));
   responseHeaders.set("Content-Type", "text/html");
-  return new Response("<!DOCTYPE html>" + markup, {
+  return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
     headers: responseHeaders
   });
@@ -360,26 +406,14 @@ __export(root_exports, {
 });
 init_react();
 var import_remix2 = __toESM(require_remix());
-
-// app/styles/global.css
-var global_default = "/build/_assets/global-RCVEWFAY.css";
-
-// app/styles/dark.css
-var dark_default = "/build/_assets/dark-APYDFYJA.css";
-
-// route:/Users/nicolas.pirotte/git/github.com/npirotte/hello-visx/packages/demo/app/root.tsx
+var import_react3 = require("react");
+var import_react4 = require("@emotion/react");
+var import_react5 = require("@chakra-ui/react");
 var links = () => {
-  return [
-    { rel: "stylesheet", href: global_default },
-    {
-      rel: "stylesheet",
-      href: dark_default,
-      media: "(prefers-color-scheme: dark)"
-    }
-  ];
+  return [];
 };
 function App() {
-  return /* @__PURE__ */ React.createElement(Document, null, /* @__PURE__ */ React.createElement(Layout, null, /* @__PURE__ */ React.createElement(import_remix2.Outlet, null)));
+  return /* @__PURE__ */ React.createElement(Document, null, /* @__PURE__ */ React.createElement(import_react5.ChakraProvider, null, /* @__PURE__ */ React.createElement(Layout, null, /* @__PURE__ */ React.createElement(import_remix2.Outlet, null))));
 }
 function ErrorBoundary({ error }) {
   console.error(error);
@@ -404,10 +438,18 @@ function CatchBoundary() {
     title: `${caught.status} ${caught.statusText}`
   }, /* @__PURE__ */ React.createElement(Layout, null, /* @__PURE__ */ React.createElement("h1", null, caught.status, ": ", caught.statusText), message));
 }
-function Document({
-  children,
-  title
-}) {
+var Document = (0, import_react4.withEmotionCache)(({ children }, emotionCache) => {
+  const serverStyleData = (0, import_react3.useContext)(ServerStyleContext);
+  const clientStyleData = (0, import_react3.useContext)(ClientStyleContext);
+  (0, import_react3.useEffect)(() => {
+    emotionCache.sheet.container = document.head;
+    const tags = emotionCache.sheet.tags;
+    emotionCache.sheet.flush();
+    tags.forEach((tag) => {
+      emotionCache.sheet._insertTag(tag);
+    });
+    clientStyleData == null ? void 0 : clientStyleData.reset();
+  }, []);
   return /* @__PURE__ */ React.createElement("html", {
     lang: "en"
   }, /* @__PURE__ */ React.createElement("head", null, /* @__PURE__ */ React.createElement("meta", {
@@ -415,37 +457,47 @@ function Document({
   }), /* @__PURE__ */ React.createElement("meta", {
     name: "viewport",
     content: "width=device-width,initial-scale=1"
-  }), title ? /* @__PURE__ */ React.createElement("title", null, title) : null, /* @__PURE__ */ React.createElement(import_remix2.Meta, null), /* @__PURE__ */ React.createElement(import_remix2.Links, null)), /* @__PURE__ */ React.createElement("body", null, children, /* @__PURE__ */ React.createElement(import_remix2.ScrollRestoration, null), /* @__PURE__ */ React.createElement(import_remix2.Scripts, null), false));
-}
+  }), /* @__PURE__ */ React.createElement("link", {
+    rel: "preconnect",
+    href: "https://fonts.googleapis.com"
+  }), /* @__PURE__ */ React.createElement("link", {
+    rel: "preconnect",
+    href: "https://fonts.gstaticom"
+  }), /* @__PURE__ */ React.createElement("link", {
+    href: "https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap",
+    rel: "stylesheet"
+  }), /* @__PURE__ */ React.createElement(import_remix2.Meta, null), /* @__PURE__ */ React.createElement(import_remix2.Links, null), serverStyleData == null ? void 0 : serverStyleData.map(({ key, ids, css }) => /* @__PURE__ */ React.createElement("style", {
+    key,
+    "data-emotion": `${key} ${ids.join(" ")}`,
+    dangerouslySetInnerHTML: { __html: css }
+  }))), /* @__PURE__ */ React.createElement("body", null, children, /* @__PURE__ */ React.createElement(import_remix2.ScrollRestoration, null), /* @__PURE__ */ React.createElement(import_remix2.Scripts, null), false ? /* @__PURE__ */ React.createElement(LiveReload, null) : null));
+});
 function Layout({ children }) {
   return /* @__PURE__ */ React.createElement("div", {
     className: "remix-app"
-  }, /* @__PURE__ */ React.createElement("header", {
-    className: "remix-app__header"
-  }, /* @__PURE__ */ React.createElement("div", {
-    className: "container remix-app__header-content"
-  }, /* @__PURE__ */ React.createElement(import_remix2.Link, {
+  }, /* @__PURE__ */ React.createElement(import_react5.Stack, null, /* @__PURE__ */ React.createElement(import_react5.Box, {
+    as: "header",
+    p: "4",
+    borderBottom: "solid 1px grey"
+  }, /* @__PURE__ */ React.createElement(import_react5.Wrap, null, /* @__PURE__ */ React.createElement(import_react5.WrapItem, null, /* @__PURE__ */ React.createElement(import_remix2.Link, {
     to: "/",
     title: "Remix",
     className: "remix-app__header-home-link"
-  }, /* @__PURE__ */ React.createElement(RemixLogo, null)), /* @__PURE__ */ React.createElement("nav", {
-    "aria-label": "Main navigation",
-    className: "remix-app__header-nav"
-  }, /* @__PURE__ */ React.createElement("ul", null, /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement(import_remix2.Link, {
+  }, /* @__PURE__ */ React.createElement(RemixLogo, null))), /* @__PURE__ */ React.createElement(import_react5.WrapItem, null, /* @__PURE__ */ React.createElement(import_remix2.Link, {
     to: "/"
-  }, "Home")), /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement("a", {
-    href: "https://remix.run/docs"
-  }, "Remix Docs")), /* @__PURE__ */ React.createElement("li", null, /* @__PURE__ */ React.createElement("a", {
-    href: "https://github.com/remix-run/remix"
-  }, "GitHub")))))), /* @__PURE__ */ React.createElement("div", {
+  }, "Home")), /* @__PURE__ */ React.createElement(import_react5.WrapItem, null, /* @__PURE__ */ React.createElement(import_remix2.Link, {
+    to: "/bar-chart-demo"
+  }, "Insights")), /* @__PURE__ */ React.createElement(import_react5.WrapItem, null, /* @__PURE__ */ React.createElement(import_remix2.Link, {
+    to: "/items"
+  }, "Items")))), /* @__PURE__ */ React.createElement(import_react5.Box, null, /* @__PURE__ */ React.createElement(import_react5.Container, null, /* @__PURE__ */ React.createElement("div", {
     className: "remix-app__main"
   }, /* @__PURE__ */ React.createElement("div", {
     className: "container remix-app__main-content"
-  }, children)), /* @__PURE__ */ React.createElement("footer", {
+  }, children)))), /* @__PURE__ */ React.createElement("footer", {
     className: "remix-app__footer"
   }, /* @__PURE__ */ React.createElement("div", {
     className: "container remix-app__footer-content"
-  }, /* @__PURE__ */ React.createElement("p", null, "\xA9 You!"))));
+  }, /* @__PURE__ */ React.createElement("p", null, "\xA9 You!")))));
 }
 function RemixLogo() {
   return /* @__PURE__ */ React.createElement("svg", {
@@ -490,7 +542,7 @@ init_react();
 init_react();
 var import_size = __toESM(require("@react-hook/size"));
 var import_scale = require("@visx/scale");
-var import_react = require("react");
+var import_react6 = require("react");
 var import_falso = require("@ngneat/falso");
 var import_group = require("@visx/group");
 var import_shape = require("@visx/shape");
@@ -499,7 +551,7 @@ var import_axis = require("@visx/axis");
 var mockData = new Array(10).fill(0).map((value, i) => ({ x: i + 1, y: (0, import_falso.randNumber)({ max: 100 }) }));
 var BarChart = (props) => {
   const { ratio = 0.3 } = props;
-  const containerElementRef = (0, import_react.useRef)(null);
+  const containerElementRef = (0, import_react6.useRef)(null);
   const [chartWidth] = (0, import_size.default)(containerElementRef, {
     initialWidth: 0,
     initialHeight: 0
@@ -509,13 +561,13 @@ var BarChart = (props) => {
   const chartHeight = chartWidth * ratio;
   const barsHeight = chartHeight - paddingBottom;
   const barsWidth = chartWidth - paddingLeft;
-  const xScale = (0, import_react.useMemo)(() => (0, import_scale.scaleBand)({
+  const xScale = (0, import_react6.useMemo)(() => (0, import_scale.scaleBand)({
     range: [0, barsWidth],
     round: true,
     domain: mockData.map((0, import_fp.get)("x")),
     padding: 0.4
   }), [barsWidth]);
-  const yScale = (0, import_react.useMemo)(() => (0, import_scale.scaleLinear)({
+  const yScale = (0, import_react6.useMemo)(() => (0, import_scale.scaleLinear)({
     range: [barsHeight, 0],
     round: true,
     domain: [0, Math.max(...mockData.map((0, import_fp.get)("y")))]
@@ -574,7 +626,7 @@ __export(actions_exports, {
   meta: () => meta2
 });
 init_react();
-var import_react2 = require("react");
+var import_react7 = require("react");
 var import_remix4 = __toESM(require_remix());
 function meta2() {
   return { title: "Actions Demo" };
@@ -592,8 +644,8 @@ var action = async ({ request }) => {
 };
 function ActionsDemo() {
   let actionMessage = (0, import_remix4.useActionData)();
-  let answerRef = (0, import_react2.useRef)(null);
-  (0, import_react2.useEffect)(() => {
+  let answerRef = (0, import_react7.useRef)(null);
+  (0, import_react7.useEffect)(() => {
     if (actionMessage && answerRef.current) {
       answerRef.current.select();
     }
@@ -777,16 +829,137 @@ function AboutIndex2() {
   }, "Go back to the ", /* @__PURE__ */ React.createElement("code", null, "/about"), " index."))));
 }
 
+// route:/Users/nicolas.pirotte/git/github.com/npirotte/hello-visx/packages/demo/app/routes/items/index.tsx
+var items_exports = {};
+__export(items_exports, {
+  action: () => action2,
+  default: () => Items,
+  loader: () => loader3
+});
+init_react();
+var import_react8 = require("@chakra-ui/react");
+var import_react9 = require("@remix-run/react");
+
+// ../graphql-schema/src/index.ts
+init_react();
+
+// ../graphql-schema/src/lib/get-graphql-client.ts
+init_react();
+var import_graphql_request = require("graphql-request");
+var getGqlClient = () => {
+  return new import_graphql_request.GraphQLClient("https://kind-urchin-96.hasura.app/v1/graphql", {
+    headers: {
+      "x-hasura-admin-secret": "E6Vy6f5BVWJZcaU1cC0Rh240B3xBaBClB0vLwuP1MJNUP1YBPRlfybDTR4QJ31Ng"
+    }
+  });
+};
+
+// ../graphql-schema/src/generated/graphql-request.ts
+init_react();
+var import_graphql = require("graphql");
+var import_graphql_tag = __toESM(require("graphql-tag"));
+var GetDatasetsDocument = import_graphql_tag.default`
+    query GetDatasets($limit: Int, $offset: Int) {
+  datasets(limit: $limit, offset: $offset, order_by: {name: asc}) {
+    id
+    name
+    protected
+  }
+}
+    `;
+var UpdateDatasetProtectionDocument = import_graphql_tag.default`
+    mutation UpdateDatasetProtection($id: uuid!, $protected: Boolean!) {
+  update_datasets_by_pk(pk_columns: {id: $id}, _set: {protected: $protected}) {
+    protected
+  }
+}
+    `;
+var defaultWrapper = (action3, _operationName, _operationType) => action3();
+var GetDatasetsDocumentString = (0, import_graphql.print)(GetDatasetsDocument);
+var UpdateDatasetProtectionDocumentString = (0, import_graphql.print)(UpdateDatasetProtectionDocument);
+function getSdk(client, withWrapper = defaultWrapper) {
+  return {
+    GetDatasets(variables, requestHeaders) {
+      return withWrapper((wrappedRequestHeaders) => client.rawRequest(GetDatasetsDocumentString, variables, __spreadValues(__spreadValues({}, requestHeaders), wrappedRequestHeaders)), "GetDatasets", "query");
+    },
+    UpdateDatasetProtection(variables, requestHeaders) {
+      return withWrapper((wrappedRequestHeaders) => client.rawRequest(UpdateDatasetProtectionDocumentString, variables, __spreadValues(__spreadValues({}, requestHeaders), wrappedRequestHeaders)), "UpdateDatasetProtection", "mutation");
+    }
+  };
+}
+
+// route:/Users/nicolas.pirotte/git/github.com/npirotte/hello-visx/packages/demo/app/routes/items/index.tsx
+var import_lodash = require("lodash");
+var loader3 = async () => {
+  const client = getGqlClient();
+  const results = await getSdk(client).GetDatasets({ limit: 20, offset: 0 });
+  return results.data;
+};
+var action2 = async ({ request }) => {
+  const formData = await request.formData();
+  const datasetId = formData.get("id");
+  const newValue = formData.get("protected");
+  if (!newValue) {
+    throw new Error("Protected value must be provided");
+  }
+  const client = getGqlClient();
+  await getSdk(client).UpdateDatasetProtection({
+    id: datasetId,
+    protected: newValue === "true"
+  });
+  return null;
+};
+var DatesetRow = (props) => {
+  var _a;
+  const fetcher = (0, import_react9.useFetcher)();
+  const optimisticValue = (_a = fetcher.submission) == null ? void 0 : _a.formData.get("protected");
+  const protectedValue = (0, import_lodash.isNil)(optimisticValue) ? props.protected : optimisticValue === "true";
+  const protectedDisabled = fetcher.state !== "idle";
+  const onClick = () => {
+    fetcher.submit({
+      id: props.id,
+      protected: (!protectedValue).toString()
+    }, { method: "post" });
+  };
+  return /* @__PURE__ */ React.createElement(import_react8.Tr, {
+    key: props.id
+  }, /* @__PURE__ */ React.createElement(import_react8.Td, null, props.name), /* @__PURE__ */ React.createElement(import_react8.Td, null, /* @__PURE__ */ React.createElement(import_react8.FormControl, {
+    display: "flex",
+    alignItems: "center"
+  }, /* @__PURE__ */ React.createElement(import_react8.FormLabel, {
+    htmlFor: "protected",
+    mb: "0",
+    hidden: true
+  }, "protected"), /* @__PURE__ */ React.createElement(import_react8.Switch, {
+    id: "protected",
+    isChecked: protectedValue,
+    onChange: onClick,
+    isDisabled: protectedDisabled
+  }))));
+};
+function Items() {
+  const { datasets } = (0, import_react9.useLoaderData)();
+  return /* @__PURE__ */ React.createElement(import_react8.Box, null, /* @__PURE__ */ React.createElement(import_react8.Heading, null, "This is your awesome list of items"), /* @__PURE__ */ React.createElement(import_react8.Table, null, /* @__PURE__ */ React.createElement(import_react8.Thead, null, /* @__PURE__ */ React.createElement(import_react8.Tr, null, /* @__PURE__ */ React.createElement(import_react8.Th, null, "Dataset"), /* @__PURE__ */ React.createElement(import_react8.Th, null, "Protected"))), /* @__PURE__ */ React.createElement(import_react8.Tbody, null, datasets.map((dataset) => {
+    return /* @__PURE__ */ React.createElement(DatesetRow, {
+      key: dataset.id,
+      id: dataset.id,
+      name: dataset.name,
+      protected: dataset.protected
+    });
+  }))));
+}
+
 // route:/Users/nicolas.pirotte/git/github.com/npirotte/hello-visx/packages/demo/app/routes/index.tsx
 var routes_exports = {};
 __export(routes_exports, {
   default: () => Index2,
-  loader: () => loader3,
+  loader: () => loader4,
   meta: () => meta6
 });
 init_react();
+var import_react10 = require("@chakra-ui/react");
 var import_remix10 = __toESM(require_remix());
-var loader3 = () => {
+var loader4 = () => {
   let data = {
     resources: [
       {
@@ -827,17 +1000,13 @@ var meta6 = () => {
 };
 function Index2() {
   let data = (0, import_remix10.useLoaderData)();
-  return /* @__PURE__ */ React.createElement("div", {
-    className: "remix__page"
-  }, /* @__PURE__ */ React.createElement("main", null, /* @__PURE__ */ React.createElement("h2", null, "Welcome to Remix!"), /* @__PURE__ */ React.createElement("p", null, "We're stoked that you're here. \u{1F973}"), /* @__PURE__ */ React.createElement("p", null, "Feel free to take a look around the code to see how Remix does things, it might be a bit different than what you\u2019re used to. When you're ready to dive deeper, we've got plenty of resources to get you up-and-running quickly."), /* @__PURE__ */ React.createElement("p", null, "Check out all the demos in this starter, and then just delete the", " ", /* @__PURE__ */ React.createElement("code", null, "app/routes/demos"), " and ", /* @__PURE__ */ React.createElement("code", null, "app/styles/demos"), " ", "folders when you're ready to turn this into your next project.")), /* @__PURE__ */ React.createElement("aside", null, /* @__PURE__ */ React.createElement("h2", null, "Demos In This App"), /* @__PURE__ */ React.createElement("ul", null, data.demos.map((demo) => /* @__PURE__ */ React.createElement("li", {
-    key: demo.to,
-    className: "remix__page__resource"
+  return /* @__PURE__ */ React.createElement(import_react10.Box, null, /* @__PURE__ */ React.createElement("main", null, /* @__PURE__ */ React.createElement(import_react10.Heading, null, "Welcome to Remix!"), /* @__PURE__ */ React.createElement("p", null, "We're stoked that you're here. \u{1F973}"), /* @__PURE__ */ React.createElement("p", null, "Feel free to take a look around the code to see how Remix does things, it might be a bit different than what you\u2019re used to. When you're ready to dive deeper, we've got plenty of resources to get you up-and-running quickly."), /* @__PURE__ */ React.createElement("p", null, "Check out all the demos in this starter, and then just delete the", " ", /* @__PURE__ */ React.createElement("code", null, "app/routes/demos"), " and ", /* @__PURE__ */ React.createElement("code", null, "app/styles/demos"), " ", "folders when you're ready to turn this into your next project.")), /* @__PURE__ */ React.createElement("aside", null, /* @__PURE__ */ React.createElement(import_react10.Heading, null, "Demos In This App"), /* @__PURE__ */ React.createElement("ul", null, data.demos.map((demo) => /* @__PURE__ */ React.createElement("li", {
+    key: demo.to
   }, /* @__PURE__ */ React.createElement(import_remix10.Link, {
     to: demo.to,
     prefetch: "intent"
   }, demo.name)))), /* @__PURE__ */ React.createElement("h2", null, "Resources"), /* @__PURE__ */ React.createElement("ul", null, data.resources.map((resource) => /* @__PURE__ */ React.createElement("li", {
-    key: resource.url,
-    className: "remix__page__resource"
+    key: resource.url
   }, /* @__PURE__ */ React.createElement("a", {
     href: resource.url
   }, resource.name))))));
@@ -845,7 +1014,7 @@ function Index2() {
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
 init_react();
-var assets_manifest_default = { "version": "8e0a9abb", "entry": { "module": "/build/entry.client-MXNXH2ZI.js", "imports": ["/build/_shared/chunk-AGSVJQLG.js", "/build/_shared/chunk-OF52EDX5.js"] }, "routes": { "root": { "id": "root", "parentId": void 0, "path": "", "index": void 0, "caseSensitive": void 0, "module": "/build/root-TXSNNCH6.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": true, "hasErrorBoundary": true }, "routes/bar-chart-demo": { "id": "routes/bar-chart-demo", "parentId": "root", "path": "bar-chart-demo", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/bar-chart-demo-WST2R7GC.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about": { "id": "routes/demos/about", "parentId": "root", "path": "demos/about", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/about-U6YSRIYN.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about/index": { "id": "routes/demos/about/index", "parentId": "routes/demos/about", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/demos/about/index-74XRHA52.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about/whoa": { "id": "routes/demos/about/whoa", "parentId": "routes/demos/about", "path": "whoa", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/about/whoa-TJGHLSIP.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/actions": { "id": "routes/demos/actions", "parentId": "root", "path": "demos/actions", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/actions-J7MUOULT.js", "imports": void 0, "hasAction": true, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/correct": { "id": "routes/demos/correct", "parentId": "root", "path": "demos/correct", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/correct-5V625K25.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/params": { "id": "routes/demos/params", "parentId": "root", "path": "demos/params", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/params-UHUQI2TP.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/params/$id": { "id": "routes/demos/params/$id", "parentId": "routes/demos/params", "path": ":id", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/params/$id-QG6NZWPG.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": true, "hasErrorBoundary": true }, "routes/demos/params/index": { "id": "routes/demos/params/index", "parentId": "routes/demos/params", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/demos/params/index-EISLOR7C.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/index": { "id": "routes/index", "parentId": "root", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/index-6XRENUIM.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": false, "hasErrorBoundary": false } }, "url": "/build/manifest-8E0A9ABB.js" };
+var assets_manifest_default = { "version": "f59bbbfa", "entry": { "module": "/build/entry.client-VQZNLAVQ.js", "imports": ["/build/_shared/chunk-SELKVQKZ.js", "/build/_shared/chunk-STOVUTRK.js", "/build/_shared/chunk-XSZDKJIQ.js", "/build/_shared/chunk-X2YYQTWM.js", "/build/_shared/chunk-ICDE4O2B.js"] }, "routes": { "root": { "id": "root", "parentId": void 0, "path": "", "index": void 0, "caseSensitive": void 0, "module": "/build/root-RTV7VHLP.js", "imports": ["/build/_shared/chunk-SPLW3HUS.js"], "hasAction": false, "hasLoader": false, "hasCatchBoundary": true, "hasErrorBoundary": true }, "routes/bar-chart-demo": { "id": "routes/bar-chart-demo", "parentId": "root", "path": "bar-chart-demo", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/bar-chart-demo-FY3GZOB5.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about": { "id": "routes/demos/about", "parentId": "root", "path": "demos/about", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/about-QW5G2D6G.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about/index": { "id": "routes/demos/about/index", "parentId": "routes/demos/about", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/demos/about/index-GW2GMQZB.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/about/whoa": { "id": "routes/demos/about/whoa", "parentId": "routes/demos/about", "path": "whoa", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/about/whoa-6SMONGUJ.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/actions": { "id": "routes/demos/actions", "parentId": "root", "path": "demos/actions", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/actions-PAES574E.js", "imports": void 0, "hasAction": true, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/correct": { "id": "routes/demos/correct", "parentId": "root", "path": "demos/correct", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/correct-RKSGT2RN.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/params": { "id": "routes/demos/params", "parentId": "root", "path": "demos/params", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/params-ZVNSZTVM.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/demos/params/$id": { "id": "routes/demos/params/$id", "parentId": "routes/demos/params", "path": ":id", "index": void 0, "caseSensitive": void 0, "module": "/build/routes/demos/params/$id-I2ZJ4LTR.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": true, "hasErrorBoundary": true }, "routes/demos/params/index": { "id": "routes/demos/params/index", "parentId": "routes/demos/params", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/demos/params/index-JDUQDJVF.js", "imports": void 0, "hasAction": false, "hasLoader": false, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/index": { "id": "routes/index", "parentId": "root", "path": void 0, "index": true, "caseSensitive": void 0, "module": "/build/routes/index-MISZEGH4.js", "imports": void 0, "hasAction": false, "hasLoader": true, "hasCatchBoundary": false, "hasErrorBoundary": false }, "routes/items/index": { "id": "routes/items/index", "parentId": "root", "path": "items", "index": true, "caseSensitive": void 0, "module": "/build/routes/items/index-SI3CYVGU.js", "imports": void 0, "hasAction": true, "hasLoader": true, "hasCatchBoundary": false, "hasErrorBoundary": false } }, "url": "/build/manifest-F59BBBFA.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var entry = { module: entry_server_exports };
@@ -929,6 +1098,14 @@ var routes = {
     index: void 0,
     caseSensitive: void 0,
     module: whoa_exports
+  },
+  "routes/items/index": {
+    id: "routes/items/index",
+    parentId: "root",
+    path: "items",
+    index: true,
+    caseSensitive: void 0,
+    module: items_exports
   },
   "routes/index": {
     id: "routes/index",

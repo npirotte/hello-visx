@@ -2,8 +2,10 @@
   "version": 2,
   "projects": {
     "bar-chart": "packages/bar-chart",
+    "dataset-management": "packages/dataset-management",
     "demo": "packages/demo",
     "demo-next": "packages/demo-next",
-    "demo-next-e2e": "packages/demo-next-e2e"
+    "demo-next-e2e": "packages/demo-next-e2e",
+    "graphql-schema": "packages/graphql-schema"
   }
 }

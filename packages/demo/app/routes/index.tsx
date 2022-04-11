@@ -1,3 +1,4 @@
+import { Box, Heading } from '@chakra-ui/react';
 import type { MetaFunction, LoaderFunction } from 'remix';
 import { useLoaderData, json, Link } from 'remix';
 
@@ -59,9 +60,9 @@ export default function Index() {
   let data = useLoaderData<IndexData>();
 
   return (
-    <div className="remix__page">
+    <Box>
       <main>
-        <h2>Welcome to Remix!</h2>
+        <Heading>Welcome to Remix!</Heading>
         <p>We're stoked that you're here. 🥳</p>
         <p>
           Feel free to take a look around the code to see how Remix does things,
@@ -76,10 +77,10 @@ export default function Index() {
         </p>
       </main>
       <aside>
-        <h2>Demos In This App</h2>
+        <Heading>Demos In This App</Heading>
         <ul>
           {data.demos.map((demo) => (
-            <li key={demo.to} className="remix__page__resource">
+            <li key={demo.to}>
               <Link to={demo.to} prefetch="intent">
                 {demo.name}
               </Link>
@@ -89,12 +90,12 @@ export default function Index() {
         <h2>Resources</h2>
         <ul>
           {data.resources.map((resource) => (
-            <li key={resource.url} className="remix__page__resource">
+            <li key={resource.url}>
               <a href={resource.url}>{resource.name}</a>
             </li>
           ))}
         </ul>
       </aside>
-    </div>
+    </Box>
   );
 }

@@ -10,12 +10,16 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": ["es2017", "dom"],
+    "lib": ["es2017", "dom", "es2018"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@hello-visx/bar-chart": ["./packages/bar-chart/src/index.ts"],
+      "@hello-visx/dataset-management": [
+        "packages/dataset-management/src/index.ts"
+      ],
+      "@hello-visx/graphql-schema": ["packages/graphql-schema/src/index.ts"],
       "~/*": ["./packages/demo/app/*"]
     }
   },

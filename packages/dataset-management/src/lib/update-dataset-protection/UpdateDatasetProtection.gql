@@ -1,0 +1,5 @@
+mutation UpdateDatasetProtection($id: uuid!, $protected: Boolean!) {
+  update_datasets_by_pk(pk_columns: {id: $id}, _set: {protected: $protected}) {
+    protected
+  }
+}
