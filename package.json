@@ -5,8 +5,7 @@
   "scripts": {
     "postinstall": "remix setup node",
     "update-schema": "npx gq https://kind-urchin-96.hasura.app/v1/graphql -H \"X-Hasura-Admin-Secret: E6Vy6f5BVWJZcaU1cC0Rh240B3xBaBClB0vLwuP1MJNUP1YBPRlfybDTR4QJ31Ng\" --introspect > packages/graphql-schema/schema.graphql",
-    "graphql-types": "graphql-codegen",
-    "build": "nx build demo"
+    "graphql-types": "graphql-codegen"
   },
   "private": true,
   "dependencies": {
@@ -20,7 +19,6 @@
     "@react-hook/size": "^2.1.2",
     "@remix-run/react": "v1.3.5-pre.1",
     "@remix-run/serve": "v1.3.5-pre.1",
-    "@remix-run/vercel": "^1.3.5-pre.1",
     "@visx/axis": "^2.6.0",
     "@visx/group": "^2.1.0",
     "@visx/scale": "^2.2.2",
@@ -37,9 +35,9 @@
     "tslib": "^2.0.0"
   },
   "devDependencies": {
+    "@graphql-codegen/typescript-graphql-request": "^4.4.5",
     "@graphql-codegen/cli": "^2.3.0",
     "@graphql-codegen/typescript": "^2.4.1",
-    "@graphql-codegen/typescript-graphql-request": "^4.4.5",
     "@graphql-codegen/typescript-operations": "^2.2.1",
     "@graphql-codegen/typescript-resolvers": "^2.4.2",
     "@nrwl/cli": "13.9.7",
