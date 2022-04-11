@@ -41,5 +41,5 @@ Thumbs.db
 # Remix files
 packages/**/build
 packages/**/.cache
-  
+# packages/**/public/**/build
   
