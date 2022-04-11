@@ -42,4 +42,4 @@ Thumbs.db
 packages/**/build
 packages/**/.cache
 packages/**/public/**/build
-  
+packages/demo/api/_build
