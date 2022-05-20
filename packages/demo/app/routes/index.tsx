@@ -3,6 +3,7 @@ import type { MetaFunction, LoaderFunction } from 'remix';
 import { useLoaderData, json, Link } from 'remix';
 
 type IndexData = {
+  host: string;
   resources: Array<{ name: string; url: string }>;
   demos: Array<{ name: string; to: string }>;
 };
@@ -11,8 +12,11 @@ type IndexData = {
 // you can connect to a database or run any server side code you want right next
 // to the component that renders it.
 // https://remix.run/api/conventions#loader
-export let loader: LoaderFunction = () => {
+export let loader: LoaderFunction = ({ request }) => {
+  const host = new URL(request.url).host;
+
   let data: IndexData = {
+    host,
     resources: [
       {
         name: 'Remix Docs',
@@ -62,7 +66,7 @@ export default function Index() {
   return (
     <Box>
       <main>
-        <Heading>Welcome to Remix!</Heading>
+        <Heading>Welcome to Remix! {data.host}</Heading>
         <p>We're stoked that you're here. 🥳</p>
         <p>
           Feel free to take a look around the code to see how Remix does things,
